@@ -126,3 +126,5 @@ dmypy.json
 agents/*
 suites/*
 outputs/*
+
+!.keep
