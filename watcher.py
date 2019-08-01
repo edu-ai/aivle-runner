@@ -103,16 +103,31 @@ class JobRunner(object):
                 raise Exception('Agent download failed')
                 
     def runnable_run(self):
-        runnable = core.Runnable(self.task['id'], self.job['id'])
+        options = {
+            'runner_type': self.job['runner'],
+            'run_time_limit': self.task['run_time_limit'],
+            'max_image_size': self.task['max_image_size']
+        }
+        if options['runner_type'] == core.RunnerType.Docker:
+            options['image'] = self.job['docker']
+        runnable = core.Runnable(self.task['id'], self.job['id'], **options)
         return runnable.run()
     
     def process(self, output):
         error, result = output
-        notes = json.dumps({'error': {'message':str(error)}} if error else result['test_cases'])
+        if error:
+            notes = {
+                'error': {
+                    'type': str(type(error).__name__), 
+                    'args': [str(earg) for earg in list(error.args)]
+                }
+            }
+        else:
+            notes = result['test_cases']
         data = {
             'status': Status.DONE if not error else Status.ERROR,
             'point': None if error else result['point'],
-            'notes': notes,
+            'notes': json.dumps(notes),
         }
         logger.info('Process done:\n{}'.format(data))
         return data
@@ -164,7 +179,8 @@ class Watcher(object):
                     more = False
                     continue
                 more = self.handler(r.json())
-            except:
+            except requests.exceptions.ConnectionError:
+                logger.info('Can\'t connect to aiVLE')
                 more = False
             
     def handler(self, data):

@@ -12,9 +12,18 @@ test_suite
 		test_suite = TestSuite()
 '''
 
+class TestSuiteNotFound(Exception): pass
+class AgentNotFound(Exception): pass
+
 def main():
-	from test_suite import test_suite
-	from agent import create_agent
+	try:
+		from test_suite import test_suite
+	except ModuleNotFoundError as e:
+		raise TestSuiteNotFound(str(e))
+	try:
+		from agent import create_agent
+	except ModuleNotFoundError as e:
+		raise AgentNotFound(str(e))
 
 	output = test_suite.run(create_agent)
 

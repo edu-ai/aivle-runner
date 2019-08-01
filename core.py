@@ -18,7 +18,7 @@ class RunnerType:
 	Python = 'PY'
 
 
-class MetadaNotFound(Exception):
+class ImageNotFound(Exception):
 	pass
 
 class UnexpectedRunnerType(Exception):
@@ -71,14 +71,12 @@ class Runnable(object):
 
 
 	def set_image(self, runner_type, image=None):
-		if image:
-			self.image = image
-		elif self.runner_type == RunnerType.Python:
+		if self.runner_type == RunnerType.Python:
 			self.image = settings.Runner.PYTHON_DOCKER_IMAGE
 		elif self.runner_type == RunnerType.Docker:
-			if not self.metadata:
-				raise MetadaNotFound
-			self.image = self.metadata
+			if not image:
+				raise ImageNotFound
+			self.image = image
 		else:
 			raise UnexpectedRunnerType
 
@@ -159,7 +157,9 @@ class Runnable(object):
 
 				output = (None, data)
 		except Exception as e:
-			self.log(e, log_type='error')
+			template = "An exception of type {0} occurred. Arguments: {1!r}"
+			message = template.format(type(e).__name__, e.args)
+			self.log(message, log_type='error')
 			output = (e, None)
 		finally:
 			self.destroy()
@@ -171,4 +171,8 @@ class Runnable(object):
 			self.container.kill()
 			self.container.remove()
 		if self.runner_type == RunnerType.Docker:
-			client.images.delete(self.image)
+			try:
+				client.images.get(self.image) # check image exists
+				client.images.delete(self.image)
+			except docker.errors.ImageNotFound:
+				pass
