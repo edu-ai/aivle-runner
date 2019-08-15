@@ -134,14 +134,13 @@ class Runnable(object):
 		try:
 			with utils.time_limit(self.pull_time_limit, 'Image pull time limit exceeded'):
 				self.pull_image()
-
-			with utils.time_limit(self.setup_time_limit, 'Setup time limit exceeded'):
 				if client.images.get(self.image).attrs['Size']/1000 > self.max_image_size:
 					raise MaxImageSizeExceeded()
 
 				if not self.container:
 					self.run_container()
 
+			with utils.time_limit(self.setup_time_limit, 'Setup time limit exceeded'):
 				# Install
 				self.pip_install(self.path_in_container('runner'), exception=RunnerInstallError)
 				if self.runner_type == RunnerType.Python:

@@ -179,6 +179,8 @@ class Watcher(object):
                 time.sleep(self.sleep)
             try:
                 r = self.api.request()
+                if r.status_code == 401:
+                    logger.error('Unauthorized')
                 if r.status_code != 200:
                     more = False
                     continue

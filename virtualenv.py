@@ -4,8 +4,18 @@ import os
 import subprocess
 import re
 import shutil
+from distutils.dir_util import copy_tree
+from distutils.file_util import copy_file
+
+
+if settings.VirtualEnv.USE_FIREJAIL:
+    ROOT_PATH = os.path.join(os.environ.get('XDG_RUNTIME_DIR'), os.environ.get('USER'))
+else:
+    ROOT_PATH = settings.VirtualEnv.ROOT_PATH
+
 
 def exec(command):
+    print('Executing:', command)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
     exit_code = p.returncode
@@ -14,30 +24,31 @@ def exec(command):
     if err:
         output = err
 
+    print(exit_code, output)
     return exit_code, output
     
   
 
-class Network(object): # DUMMY
+class Network(object):
     def connect(self, container):
-        pass
+        container.network = True
 
     def disconnect(self, container):
-        pass
+        container.network = False
 
 
-class Networks(object): # DUMMY
+class Networks(object): 
     def list(self, names=[]):
         return [Network()]
 
 
-class Image(object): # DUMMY
+class Image(object):
     def __init__(self):
         self.attrs = {}
         self.attrs['Size'] = 0
 
 
-class Images(object): # DUMMY
+class Images(object):
     def pull(self, name):
         pass
 
@@ -53,7 +64,8 @@ class Container(object): # WARNING: no support for multiple instance existing at
         self.image = image
         self.volumes = kwargs.get('volumes', {})
         self.name = kwargs.get('name', utils.generate_secure_string(16))
-        self.path = os.path.join(settings.VirtualEnv.ROOT_PATH, self.name)
+        self.path = os.path.join(ROOT_PATH, self.name)
+        self.network = True
 
     def get_path(self, path):
         return os.path.join(self.path, *path.split('/'))
@@ -69,11 +81,15 @@ class Container(object): # WARNING: no support for multiple instance existing at
         return command
 
     def start(self):
-        # Create virtual environment
-        exec('pyenv virtualenv {} {}'.format(self.image, self.name))
         # Create working folder and cd
         os.makedirs(self.path, exist_ok=True)
         os.chdir(self.path)
+        # Provide pyenv for firejail
+        if settings.VirtualEnv.USE_FIREJAIL:
+            self._exec_run('curl https://pyenv.run | bash')
+            self._exec_run('pyenv install {}'.format(self.image))
+        # Create virtual environment
+        self._exec_run('pyenv virtualenv {} {}'.format(self.image, self.name))
         # Symlink volumes to working folder
         for src, dst in self.volumes.items():
             relative_dst = self.get_path(dst['bind'])
@@ -82,7 +98,22 @@ class Container(object): # WARNING: no support for multiple instance existing at
                 os.remove(relative_dst)
             except:
                 pass
-            os.symlink(src, relative_dst)
+            if settings.VirtualEnv.USE_FIREJAIL:
+                if os.path.isfile(src):
+                    copy_file(src, relative_dst)
+                else:
+                    copy_tree(src, relative_dst)
+            else:
+                os.symlink(src, relative_dst)
+
+    def _exec_run(self, command, **kwargs):
+        # Set pyenv dir, otherwise it will detect the original pyenv which is inaccessible
+        command = 'PYENV_DIR={} {}'.format(self.path, command)
+        # Wrap with firejail
+        if settings.VirtualEnv.USE_FIREJAIL:
+            network = '' if self.network else ' --net=none'
+            command = 'firejail{} --private-dev --private={} --quiet bash -c "{}"'.format(network, self.path, command)
+        return exec(command)
 
     def exec_run(self, command, **kwargs):
         # detect and replace absolute path with get_path
@@ -90,14 +121,14 @@ class Container(object): # WARNING: no support for multiple instance existing at
         # Run command
         command = 'PYENV_VERSION={} pyenv exec {}'.format(self.name, command)
         # Return results & error code
-        return exec(command)
+        return self._exec_run(command)
 
     def kill(self):
         pass
 
     def remove(self):
         # Delete virtualenv
-        exec('pyenv uninstall -y {}'.format(self.name))
+        self._exec_run('pyenv uninstall -f {}'.format(self.name))
         # Move out of working dir
         os.chdir(settings.BASE_PATH)
         # Delete working dir
