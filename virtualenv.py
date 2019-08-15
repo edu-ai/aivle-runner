@@ -8,12 +8,11 @@ import shutil
 def exec(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
+    exit_code = p.returncode
 
-    exit_code = 0
-    output = out.decode('utf-8')
+    output = out
     if err:
-        exit_code = 1
-        output = err.decode('utf-8')
+        output = err
 
     return exit_code, output
     
@@ -28,7 +27,7 @@ class Network(object): # DUMMY
 
 
 class Networks(object): # DUMMY
-    def list(self):
+    def list(self, names=[]):
         return [Network()]
 
 
@@ -40,7 +39,7 @@ class Image(object): # DUMMY
 
 class Images(object): # DUMMY
     def pull(self, name):
-        exec('pyenv install {}'.format(settings.VirtualEnv.PYTHON_VERSION))
+        pass
 
     def get(self, name):
         return Image()
@@ -49,7 +48,7 @@ class Images(object): # DUMMY
         pass
 
 
-class Container(object):
+class Container(object): # WARNING: no support for multiple instance existing at the same time
     def __init__(self, image, **kwargs):
         self.image = image
         self.volumes = kwargs.get('volumes', {})
@@ -98,7 +97,7 @@ class Container(object):
 
     def remove(self):
         # Delete virtualenv
-        exec('pyenv uninstall {}'.format(self.name))
+        exec('pyenv uninstall -y {}'.format(self.name))
         # Move out of working dir
         os.chdir(settings.BASE_PATH)
         # Delete working dir

@@ -11,11 +11,12 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 
-if settings.USE_DOCKER:
+if settings.Runner.USE_DOCKER:
 	client = docker.from_env()
 else:
 	client = virtualenv.Client()
 
+print('Using:', client)
 
 class RunnerType:
 	Docker = 'DO'

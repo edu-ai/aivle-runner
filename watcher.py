@@ -4,6 +4,9 @@ import time
 import shutil
 import os
 import logging
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -18,13 +21,14 @@ class Status:
     DONE = 'D'
 
 class BaseAPI(object):
-    def __init__(self, auth=None):
+    def __init__(self, auth=None, verify=False):
         self.session = requests.Session()
         self.session.auth = auth
+        self.verify = verify
         
     def request(self, url, method='get', **kwargs):
         assert method in ['get', 'post', 'delete', 'put']
-        response = getattr(self.session, method)(url, **kwargs)
+        response = getattr(self.session, method)(url, verify=self.verify, **kwargs)
         return response
         
     def download(self, url, filepath):
@@ -179,8 +183,8 @@ class Watcher(object):
                     more = False
                     continue
                 more = self.handler(r.json())
-            except requests.exceptions.ConnectionError:
-                logger.info('Can\'t connect to aiVLE')
+            except requests.exceptions.ConnectionError as e:
+                logger.info('Can\'t connect to aiVLE', e)
                 more = False
             
     def handler(self, data):

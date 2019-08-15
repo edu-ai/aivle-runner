@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 RUNNER_PATH = os.path.join(BASE_PATH, 'runner')
@@ -19,8 +21,8 @@ class VirtualEnv:
     ROOT_PATH = os.path.join(BASE_PATH, 'virtualenvs')
 
 class Watcher:
-    API = 'http://127.0.0.1:8000/api/v1/jobs/'
-    USERNAME = 'rizkiarm'
-    PASSWORD = '1'
+    API = os.getenv("WATCHER_API")
+    USERNAME = os.getenv("WATCHER_USERNAME")
+    PASSWORD = os.getenv("WATCHER_PASSWORD")
     SLEEP = 5
     PROCESSES = 1
