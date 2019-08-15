@@ -1,4 +1,5 @@
 import docker
+import virtualenv
 import os
 import json
 import logging
@@ -10,7 +11,10 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 
-client = docker.from_env()
+if settings.USE_DOCKER:
+	client = docker.from_env()
+else:
+	client = virtualenv.Client()
 
 
 class RunnerType:
