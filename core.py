@@ -1,5 +1,3 @@
-import docker
-import virtualenv
 import os
 import json
 import logging
@@ -12,8 +10,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 
 if settings.Runner.USE_DOCKER:
+	import docker
 	client = docker.from_env()
 else:
+	import virtualenv
 	client = virtualenv.Client()
 
 print('Using:', client)

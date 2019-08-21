@@ -186,7 +186,7 @@ class Watcher(object):
                     continue
                 more = self.handler(r.json())
             except requests.exceptions.ConnectionError as e:
-                logger.info('Can\'t connect to aiVLE', e)
+                logger.info('Can\'t connect to aiVLE')
                 more = False
             
     def handler(self, data):
