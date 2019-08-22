@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
-RUNNER_PATH = os.path.join(BASE_PATH, 'runner')
+RUNNER_PATH = os.path.join(BASE_PATH, 'runner-kit')
 AGENTS_PATH = os.path.join(BASE_PATH, 'agents')
 SUITES_PATH = os.path.join(BASE_PATH, 'suites')
 OUTPUT_PATH = os.path.join(BASE_PATH, 'outputs')
