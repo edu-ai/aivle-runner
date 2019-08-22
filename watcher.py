@@ -154,8 +154,11 @@ class JobRunner(object):
     
     def run(self):
         try:
-            self.get_task()
             self.run_job()
+        except:
+            return # Task was taken by another process
+        try:
+            self.get_task()
             self.maybe_download_suite()
             self.maybe_download_agent()
             output = self.runnable_run()

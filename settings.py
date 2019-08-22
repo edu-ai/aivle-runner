@@ -10,8 +10,8 @@ OUTPUT_PATH = os.path.join(BASE_PATH, 'outputs')
 
 class Runner:
     PYTHON_DOCKER_IMAGE = 'python:3.7'
-    PULL_TIME_LIMIT = 5 * 60 # seconds
-    SETUP_TIME_LIMIT = 1 * 60 # seconds
+    PULL_TIME_LIMIT = 10 * 60 # seconds
+    SETUP_TIME_LIMIT = 10 * 60 # seconds
     RUN_TIME_LIMIT = 1 * 60 * 60 # seconds
     MAX_IMAGE_SIZE = 1000000 # KB
     USE_DOCKER = False
