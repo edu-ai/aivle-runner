@@ -51,6 +51,7 @@ class ReinforcementLearningTestEnv(BaseTestEnv):
 			agent.update(**full_state)
 			self.evaluator.step(**full_state)
 
+			state = next_state
 			if done:
 				runs -= 1
 				self.env.reset()
