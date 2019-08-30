@@ -10,6 +10,7 @@ from distutils.file_util import copy_file
 
 if settings.VirtualEnv.USE_FIREJAIL:
     ROOT_PATH = os.path.join(os.environ.get('XDG_RUNTIME_DIR'), os.environ.get('USER'))
+    SHARED_PATH = os.path.join(ROOT_PATH, 'shared')
 else:
     ROOT_PATH = settings.VirtualEnv.ROOT_PATH
 
@@ -90,6 +91,8 @@ class Container(object): # WARNING: no support for multiple instance existing at
             self._exec_run('pyenv install {}'.format(self.image))
         # Create virtual environment
         self._exec_run('pyenv virtualenv {} {}'.format(self.image, self.name))
+        # Update pip
+        self.exec_run('pip install --upgrade pip')
         # Symlink volumes to working folder
         for src, dst in self.volumes.items():
             relative_dst = self.get_path(dst['bind'])
@@ -146,3 +149,24 @@ class Client(object):
         self.images = Images()
         self.containers = Containers()
         self.networks = Networks()
+
+
+def init():
+    TMP_SHARED_PATH = os.path.join(ROOT_PATH, 'shared_tmp')
+    DEL_SHARED_PATH = os.path.join(ROOT_PATH, 'shared_del')
+    print('>>> Link:', settings.VirtualEnv.SHARED_PATH, SHARED_PATH)
+    # Copy to temporary path
+    print('Copying:', settings.VirtualEnv.SHARED_PATH, TMP_SHARED_PATH)
+    copy_tree(settings.VirtualEnv.SHARED_PATH, TMP_SHARED_PATH)
+    # Move shared path to the del path
+    print('Moving:', SHARED_PATH, DEL_SHARED_PATH)
+    shutil.move(SHARED_PATH, DEL_SHARED_PATH)
+    # Move tmp shared path to the proper path
+    print('Moving:', TMP_SHARED_PATH, SHARED_PATH)
+    shutil.move(TMP_SHARED_PATH, SHARED_PATH)
+    # Delete original shared path
+    print('Deleting:', DEL_SHARED_PATH)
+    shutil.rmtree(DEL_SHARED_PATH, ignore_errors=True)
+
+if __name__ == "__main__":
+    init()

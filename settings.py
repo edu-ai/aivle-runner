@@ -20,6 +20,7 @@ class VirtualEnv:
     PYTHON_VERSION = '3.7.2'
     ROOT_PATH = os.getenv("VIRTUALENV_ROOT") or os.path.join(BASE_PATH, 'virtualenvs')
     USE_FIREJAIL = True
+    SHARED_PATH = os.getenv("VIRTUALENV_SHARED_PATH")
 
 class Watcher:
     API = os.getenv("WATCHER_API")
