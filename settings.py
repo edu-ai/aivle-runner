@@ -25,5 +25,5 @@ class Watcher:
     API = os.getenv("WATCHER_API")
     USERNAME = os.getenv("WATCHER_USERNAME")
     PASSWORD = os.getenv("WATCHER_PASSWORD")
-    SLEEP = 5
+    SLEEP = int(os.getenv("WATCHER_SLEEP"))
     PROCESSES = 1

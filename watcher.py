@@ -176,7 +176,7 @@ class Watcher(object):
         self.sleep = sleep
         
     def watch(self):
-        more = False
+        more = True
         while True:
             if not more:
                 time.sleep(self.sleep)
