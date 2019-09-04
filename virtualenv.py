@@ -159,8 +159,9 @@ def init():
     print('Copying:', settings.VirtualEnv.SHARED_PATH, TMP_SHARED_PATH)
     copy_tree(settings.VirtualEnv.SHARED_PATH, TMP_SHARED_PATH)
     # Move shared path to the del path
-    print('Moving:', SHARED_PATH, DEL_SHARED_PATH)
-    shutil.move(SHARED_PATH, DEL_SHARED_PATH)
+    if os.path.isdir(SHARED_PATH):
+        print('Moving:', SHARED_PATH, DEL_SHARED_PATH)
+        shutil.move(SHARED_PATH, DEL_SHARED_PATH)
     # Move tmp shared path to the proper path
     print('Moving:', TMP_SHARED_PATH, SHARED_PATH)
     shutil.move(TMP_SHARED_PATH, SHARED_PATH)

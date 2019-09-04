@@ -44,6 +44,9 @@ class RunnerError(Exception):
 class MaxImageSizeExceeded(Exception):
 	pass
 
+class MalformedOutputError(Exception):
+	pass
+
 
 class Runnable(object):
 	def __init__(self, ts_id, agent_id, runner_type=RunnerType.Python, 
@@ -152,7 +155,10 @@ class Runnable(object):
 			with utils.time_limit(self.run_time_limit, 'Run time limit exceeded'):
 				# Execute runner
 				exit_code, output = self.exec_run("runner", exception=RunnerError)
-				data = json.loads(output)
+				try:
+					data = json.loads(output)
+				except json.JSONDecodeError as e:
+					raise MalformedOutputError(str(e), output)
 
 				# Save output for the future
 				os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
