@@ -115,7 +115,7 @@ class Container(object): # WARNING: no support for multiple instance existing at
         # Wrap with firejail
         if settings.VirtualEnv.USE_FIREJAIL:
             network = '' if self.network else ' --net=none'
-            command = 'firejail{} --private-dev --private={} --quiet bash -c "{}"'.format(network, self.path, command)
+            command = 'firejail{} --private-dev --private={} --read-only={} --quiet bash -c "{}"'.format(network, self.path, SHARED_PATH, command)
         return exec(command)
 
     def exec_run(self, command, **kwargs):
