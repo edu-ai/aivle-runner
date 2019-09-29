@@ -65,9 +65,12 @@ class Runnable(object):
 		self.setup_time_limit = setup_time_limit
 		self.run_time_limit = run_time_limit
 		self.max_image_size = max_image_size
+		self.name = kwargs.get('name', None)
 
 	@property
 	def container_name(self):
+		if self.name is not None:
+			return self.name
 		return "aiVLE-runner-TS.{}-A.{}-{}".format(self.ts_id, self.agent_id, self.rand)
 
 	@property
@@ -131,7 +134,14 @@ class Runnable(object):
 		client.networks.list(names=[network_name])[0].disconnect(self.container)
 		self.log('Disconnected from: {}'.format(network_name))
 
-	def run(self):
+	def interact(self):
+		while True:
+			cmd = input("$ ")
+			if cmd == 'exit':
+				break
+			print(self.exec_run(cmd, exception=None))
+
+	def run(self, interactive=False):
 		self.log('Running container: TS.{}, A.{}, RT.{}, RTL.{}'.format(self.ts_id, self.agent_id, self.runner_type, self.run_time_limit))
 		output = (None, None) # (error, data)
 		try:
@@ -166,6 +176,9 @@ class Runnable(object):
 					json.dump(data, outfile)
 
 				output = (None, data)
+
+			if interactive:
+				self.interact()
 		except Exception as e:
 			template = "An exception of type {0} occurred. Arguments: {1!r}"
 			message = template.format(type(e).__name__, e.args)
@@ -186,3 +199,11 @@ class Runnable(object):
 				client.images.delete(self.image)
 			except docker.errors.ImageNotFound:
 				pass
+
+
+if __name__ == "__main__":
+	import sys
+	suite_id = sys.argv[1]
+	agent_id = sys.argv[2]
+	r = Runnable(suite_id, agent_id, name='test-{}-{}'.format(suite_id, agent_id))
+	r.run(interactive=True)
