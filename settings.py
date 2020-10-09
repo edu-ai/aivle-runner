@@ -28,3 +28,6 @@ class Watcher:
     PASSWORD = os.getenv("WATCHER_PASSWORD")
     SLEEP = int(os.getenv("WATCHER_SLEEP"))
     PROCESSES = 1
+
+class Submission:
+    API = os.getenv("SUBMISSION_API")

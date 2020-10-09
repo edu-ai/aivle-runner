@@ -1,3 +1,3 @@
 [submodule "runner-kit"]
 	path = runner-kit
-	url = git@github.com:rizkiarm/aivle-runner-kit.git
+	url = git@github.com:cs4246/aivle-runner-kit.git

@@ -129,3 +129,4 @@ outputs/*
 virtualenvs/*
 
 !.keep
+._*
